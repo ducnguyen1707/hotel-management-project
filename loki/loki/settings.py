@@ -42,13 +42,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    #Extenals
-    'drf_spectacular',
-    'rest_framework',
+   
     #Internal
     'user',
     'hotel',
-    
+     #Extenals
+    'rest_framework',
+    'drf_spectacular',
 ]
 
 MIDDLEWARE = [
@@ -139,12 +139,15 @@ AUTH_USER_MODEL =  "user.User"
 REST_FRAMEWORK = {
     
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    "DEFAULT_AUTHENTICATION_CLASSES" :[
+        "rest_framework.authentication.SessionAuthentication",
+    ],
 }
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Your Project API',
     'DESCRIPTION': 'Your project description',
     'VERSION': '1.0.0',
-    'SERVE_INCLUDE_SCHEMA': True,  
+    'SERVE_INCLUDE_SCHEMA': True ,  
     
 }

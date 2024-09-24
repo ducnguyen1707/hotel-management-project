@@ -5,12 +5,21 @@ from django.db import models
 
 # Định nghĩa model Room - dùng để lưu trữ thông tin các phòng trong khách sạn
 class Room(models.Model):
+    ROOM_CATEGORY=[("Single", "Single"), 
+                   ("Double", "Double"),
+                    ]
+    
+    ROOM_STATUS=[("NOT READY", "NOT READY"),
+                 ("READY", "READY"),
+                 ]
+    
     room_number = models.IntegerField()  # Số phòng
-    room_type = models.CharField(max_length=50)  # Loại phòng (ví dụ: Deluxe, Standard)
+    room_type = models.CharField(max_length=50, choices = ROOM_CATEGORY)  # Loại phòng (ví dụ: Deluxe, Standard)
+    room_status = models.CharField(max_length=50, choices= ROOM_STATUS, default="NOT READY")
     description = models.CharField(max_length=250, null =True)  # Mô tả phòng (ví dụ: phòng có view biển)
     floor = models.IntegerField(null= True)  # Tầng của phòng
     price = models.IntegerField()  # Giá phòng (sử dụng IntegerField cho giá trị số)
-
+    
     # Hàm trả về chuỗi đại diện cho đối tượng Room
     def __str__(self):
         return f"Phòng số: {self.room_number}. Loại phòng: {self.room_number}. Mô tả: {self.description}. Giá niêm yết: {self.price}."
