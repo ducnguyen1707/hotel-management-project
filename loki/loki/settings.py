@@ -48,7 +48,7 @@ INSTALLED_APPS = [
     'hotel',
      #Extenals
     'rest_framework',
-    'drf_spectacular',
+    'drf_spectacular'
 ]
 
 MIDDLEWARE = [

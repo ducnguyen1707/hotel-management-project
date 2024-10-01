@@ -17,15 +17,18 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
-from hotel.views import RoomListViewSet, StaffListViewSet
+from hotel.views import RoomViewSet, StaffScheduleViewSet, StaffViewSet
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
-router.register("api/room/select",RoomListViewSet)
-router.register("api/staff/select", StaffListViewSet)
 
+#router.register("api/room/select",RoomListViewSet) #/api/staff/select/?position_name=<position>
+router.register("api/loki/room", RoomViewSet)
+router.register("api/loki/staff", StaffViewSet )
+router.register("api/loki/schedule", StaffScheduleViewSet)
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/docs/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/schema/ui/', SpectacularSwaggerView.as_view()),
+   # path('api/room/select/<int:id>/', RoomListViewSet.as_view({'patch': 'patch'})),
 ] + router.urls
