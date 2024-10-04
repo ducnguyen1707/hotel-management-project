@@ -1,24 +1,28 @@
 # Import các mô-đun cần thiết từ Django
+from datetime import timedelta
+
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
 
 
 # Định nghĩa model Room - dùng để lưu trữ thông tin các phòng trong khách sạn
 class Room(models.Model):
     ROOM_CATEGORY=[("Single", "Single"), 
-                   ("Double", "Double"),
-                    ]
+                   ("Double", "Double"),]
     
     ROOM_STATUS=[("NOT READY", "NOT READY"),
-                 ("READY", "READY"),
-                 ]
+                 ("READY", "READY"),]
+    
+    ROOM_PRICE=[("200000","200,000 VND"),
+                ("300000","300,000 VND"),]
     
     room_number = models.IntegerField()  # Số phòng
     room_type = models.CharField(max_length=50, choices = ROOM_CATEGORY)  # Loại phòng (ví dụ: Deluxe, Standard)
     room_status = models.CharField(max_length=50, choices= ROOM_STATUS, default="NOT READY")
     description = models.CharField(max_length=250, null =True)  # Mô tả phòng (ví dụ: phòng có view biển)
     floor = models.IntegerField(null= True)  # Tầng của phòng
-    price = models.IntegerField()  # Giá phòng (sử dụng IntegerField cho giá trị số)
+    price = models.CharField(max_length=50, choices=ROOM_PRICE) # Giá phòng (sử dụng IntegerField cho giá trị số)
     
     # Hàm trả về chuỗi đại diện cho đối tượng Room
     def __str__(self):
@@ -37,11 +41,11 @@ class Client(models.Model):
 
 # Định nghĩa model Staff - lưu trữ thông tin về nhân viên
 class Staff(models.Model):
-    STATUS=[("AVAILABLE", "AVAILABLE"),
-            ("NON-AVAI", "NON-AVAI"),]
+    # STATUS=[("AVAILABLE", "AVAILABLE"),
+    #         ("NON-AVAI", "NON-AVAI"),]
     account = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)  # Liên kết đến User model (tài khoản người dùng)
     position_name = models.CharField(max_length=50)  # Vị trí của nhân viên (ví dụ: Lễ tân, Quản lý)
-    status = models.CharField(max_length=50, choices=STATUS, default="NON-AVAI")  # Trạng thái làm việc của nhân viên (True: đang làm, False: nghỉ)
+    #status = models.CharField(max_length=50, choices=STATUS, default="NON-AVAI")  # Trạng thái làm việc của nhân viên (True: đang làm, False: nghỉ)
     staff_phone = models.CharField(max_length=12,null=True, blank=True)
     staff_id_number = models.CharField(max_length=12, unique=True, null= True, blank= True)
     
@@ -60,6 +64,23 @@ class StaffSchedule(models.Model):
     # Hàm trả về chuỗi đại diện cho đối tượng StaffSchedule
     def __str__(self):
         return f"Lịch làm: {self.shift_name}"
+    
+    def work_time(self):
+        start = timedelta(hours=self.start_time.hour, minutes=self.start_time.minute)
+        end = timedelta(hours=self.end_time.hour, minutes=self.end_time.minute)
+        x = end-start
+        total_h= x.total_seconds()//3600
+        total_m= (x.total_seconds()%3600)//60
+        return f"{int(total_h)} giờ {int(total_m)} phút" 
+        if total_h > 2:
+            return {"messsage": "Hãy uống nhiều nước và giữ tỉnh táo khi làm việc bạn nhé"}
+    
+    def close_case(self):
+        now = timezone.now().time()
+        end = self.end_time
+        if now >= end:
+            return f"Thén kiu bạn vì đã làm việc 1 cách năng động"
+        return f"Cố gắng lên nào, bạn đang trong thời gian ca làm nhó"
 
 # Định nghĩa model BookingManage - quản lý việc đặt phòng
 class BookingManage(models.Model):

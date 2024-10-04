@@ -17,7 +17,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
-from hotel.views import RoomViewSet, StaffScheduleViewSet, StaffViewSet
+from hotel.views import (BookingManageViewSet, RoomViewSet,
+                         StaffScheduleViewSet, StaffViewSet)
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
@@ -26,6 +27,7 @@ router = DefaultRouter()
 router.register("api/loki/room", RoomViewSet)
 router.register("api/loki/staff", StaffViewSet )
 router.register("api/loki/schedule", StaffScheduleViewSet)
+router.register("api/loki/booking", BookingManageViewSet)
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/docs/schema/', SpectacularAPIView.as_view(), name='schema'),
