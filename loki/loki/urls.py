@@ -14,10 +14,12 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
-from hotel.views import (BookingManageViewSet, RoomViewSet,
+from hotel.views import (BillViewSet, BookingManageViewSet, RoomViewSet,
                          StaffScheduleViewSet, StaffViewSet)
 from rest_framework.routers import DefaultRouter
 
@@ -28,9 +30,13 @@ router.register("api/loki/room", RoomViewSet)
 router.register("api/loki/staff", StaffViewSet )
 router.register("api/loki/schedule", StaffScheduleViewSet)
 router.register("api/loki/booking", BookingManageViewSet)
+router.register("api/loki/bill", BillViewSet)
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/docs/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/schema/ui/', SpectacularSwaggerView.as_view()),
    # path('api/room/select/<int:id>/', RoomListViewSet.as_view({'patch': 'patch'})),
 ] + router.urls
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

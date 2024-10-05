@@ -4,9 +4,10 @@ from rest_framework.decorators import api_view
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.response import Response
 
-from .models import Room, Staff, StaffSchedule
-from .serializer import (BookingManageSerializer, RoomSerializer,
-                         StaffScheduleSerializer, StaffSerializer)
+from .models import Bill, BookingManage, Room, Staff, StaffSchedule
+from .serializer import (BillSerializer, BookingManageSerializer,
+                         RoomSerializer, StaffScheduleSerializer,
+                         StaffSerializer)
 
 
 # Create your views here.
@@ -27,7 +28,6 @@ class RoomViewSet(viewsets.ViewSet):
                 self.queryset = self.queryset.filter(room_status="NOT READY")
         serializer = RoomSerializer(self.queryset, many= True)
         return Response(serializer.data)
-    
     def patch(self, request):
         try:
             id = request.query_params.get("id")
@@ -47,7 +47,6 @@ class RoomViewSet(viewsets.ViewSet):
                 item.price =price
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
     def put (self, request):
         id = request.query_parmas.get("id")
         room =Room.objects.get(id=id)
@@ -56,13 +55,11 @@ class RoomViewSet(viewsets.ViewSet):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        
     def create(self, request):
         serializer = RoomSerializer(data = request.data)
         if serializer.is_valid():
             room = serializer.save()
         return Response(serializer.data)
-    
     def delete(self, request):
         id = request.query_params.get("id")
         room = Room.objects.get(id=id)
@@ -72,7 +69,6 @@ class RoomViewSet(viewsets.ViewSet):
 class StaffViewSet(viewsets.ViewSet):   
     queryset = Staff.objects.all()
     #serializer_class = StaffSerializer
-    
     def list(self, request):
         staff = request.query_params.get("staff")=="true"
         position = request.query_params.get("position_name")
@@ -88,7 +84,6 @@ class StaffViewSet(viewsets.ViewSet):
             self.queryset = self.queryset.filter(staff_phone=phone)
         serializer = StaffSerializer(self.queryset, many =True)
         return Response(serializer.data)
-    
     def patch(self,request):
         id = request.request_params.get("id")
         staff = Staff.objects.get(id=id)
@@ -100,13 +95,11 @@ class StaffViewSet(viewsets.ViewSet):
                 staff.staff_phone = staff_phone
                 serializer.save()
             return Response(serializer.data)
-    
     def delete(self, request):
         staff_id= request.query_params.get("id")
         staff = Staff.objects.get(id=staff_id)
         staff.delete()
         return Response("Staff deleted successfully!")
-        
         
 class StaffScheduleViewSet(viewsets.ViewSet):
     queryset = StaffSchedule.objects.all()
@@ -116,7 +109,6 @@ class StaffScheduleViewSet(viewsets.ViewSet):
         name = request.query_params.get("name")
         staff = request.query_params.get("staff")=="true"
         shift_name =request.query_params.get("shift_name")
-
         if id:
             self.queryset = self.queryset.filter(id=id)
         if name:
@@ -128,27 +120,22 @@ class StaffScheduleViewSet(viewsets.ViewSet):
             self.queryset = self.queryset.filter(shift_name=shift_name)
         serializer = StaffScheduleSerializer(self.queryset, many=True)
         return Response(serializer.data)
-    
     def create(self, request):
         serializer = StaffScheduleSerializer(data = request.data)
         if serializer.is_valid():
             serializer.save()
         return Response(serializer.data)
-        
     def put(self, request):
         id = request.query_params.get("id")
         schedule = StaffSchedule.objects.get(id=id)
         serializer = StaffScheduleSerializer(schedule, data = request.data)
-       
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-
     def path(self, request):
         id = request.query_params.get("id")
         schedule = StaffSchedule.objects.get(id=id)
         serializer = StaffScheduleSerializer(schedule, data = request.data)
-        
         if serializer.is_valid():
             start = request.data.get("start_time")
             end = request.data.get("end_time")
@@ -156,7 +143,6 @@ class StaffScheduleViewSet(viewsets.ViewSet):
                 schedule.start_time = start
                 schedule.end_time = end
                 return Response(serializer.data)
-            
     def delete(self, request):
         id = request.query_params.get("id")
         schedule = StaffSchedule.objects.get(id=id)
@@ -164,5 +150,48 @@ class StaffScheduleViewSet(viewsets.ViewSet):
         return Response("Schedule deleted successfully!")
     
 class BookingManageViewSet(viewsets.ViewSet):
-    pass
-        
+    queryset = BookingManage.objects.all()
+    def list(self, request):
+        id = request.query_params.get("id")
+        client = request.query_params.get("client")
+        staff = request.query_params.get("staff")
+        if id:
+            self.queryset = self.queryset.filter(id=id)
+        if client:
+            self.queryset = self.queryset.filter(client=client)
+        if staff:
+            self.queryset = self.queryset.filter(staff=staff)
+        serializer = BookingManageSerializer(self.queryset, many=True)
+        return Response(serializer.data)
+    def put(self, request):
+        id = request.query_params.get("id")
+        book = BookingManage.objects.get(id=id)
+        serializer =BookingManageSerializer(book, data = request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+    def delete(self, request):
+        id = request.query_params.get("id")
+        book = BookingManage.objects.get(id=id)
+        book.delete()
+        return Response("Book deleted successfully!")
+    
+class BillViewSet(viewsets.ViewSet):
+    queryset = Bill.objects.all()
+    def list(self, request):
+        id = request.query_params.get("id")
+        staff = request.query_params.get("staff")
+        client = request.query_params.get("client")
+        if id:
+            self.queryset = self.queryset.filter(id=id)
+        if staff:
+            self.queryset = self.queryset.filter(booking_info__staff=staff )
+        if client:
+            self.queryset = self.queryset.filter(booking_info__client=client)
+        serializer = BillSerializer(self.queryset, many =True)
+        return Response(serializer.data)
+    def delete(self, request):
+        id = request.query_params.get("id")
+        bill = Bill.objects.get(id=id)
+        bill.delete()
+        return Response("Bill delete success")

@@ -71,10 +71,10 @@ class StaffSchedule(models.Model):
         x = end-start
         total_h= x.total_seconds()//3600
         total_m= (x.total_seconds()%3600)//60
-        return f"{int(total_h)} giờ {int(total_m)} phút" 
         if total_h > 2:
             return {"messsage": "Hãy uống nhiều nước và giữ tỉnh táo khi làm việc bạn nhé"}
-    
+        return f"{int(total_h)} giờ {int(total_m)} phút" 
+        
     def close_case(self):
         now = timezone.now().time()
         end = self.end_time
@@ -90,20 +90,29 @@ class BookingManage(models.Model):
     check_in_time = models.DateTimeField()  # Thời gian check-in
     check_out_time = models.DateTimeField()  # Thời gian check-out
     staff = models.ForeignKey(Staff, on_delete=models.CASCADE, related_name="booking_staff", null=True, blank=True)
-    
-    
+    def check_room_status(self):
+        for room in self.room.all():
+            if BookingManage.objects.filter(room=room, check_in_time__lt=self.check_out_time, check_out_time__gt=self.check_in_time).exists():
+                return False
+        return True
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        for room in self.room.all():
+            if self.check_out_time <= timezone.now():
+                room.room_status = "READY"
+            else:
+                room.room_status = "NOT READY"
+            room.save()
+
 # Định nghĩa model Bill - quản lý hóa đơn cho mỗi booking
 class Bill(models.Model):
     booking_info = models.OneToOneField(BookingManage, on_delete=models.CASCADE)  # Liên kết 1-1 với BookingManage
     #tip = models.IntegerField(default=0)  # Trường cho tiền tip (hiện tại bị comment)
     tax = models.FloatField(default=0.1)  # Mức thuế, mặc định là 10%
-
     # Hàm tính tổng giá trị phòng sau thuế
     def price_after_tax(self):
         rooms = self.booking_info.room.all()  # Lấy tất cả các phòng từ booking_info
         room_price = sum(room.price for room in rooms)  # Tính tổng giá trị của tất cả các phòng
-        
         # Cộng tổng tiền phòng với thuế
         total = room_price + (room_price * self.tax)
-        
         return total  # Trả về tổng giá trị sau thuế
