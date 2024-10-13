@@ -4,7 +4,11 @@ from datetime import timedelta
 from django.conf import \
     settings  # Import settings từ Django để truy cập cấu hình
 from django.db import models  # Import models để định nghĩa các mô hình dữ liệu
+from django.shortcuts import get_object_or_404
 from django.utils import timezone  # Import timezone để xử lý thời gian
+
+from .validator import (validate_cccd_pic_size, validate_image_file_extension,
+                        validate_staff_pic_size)
 
 
 # Hàm tải lên hình ảnh khách hàng
@@ -64,8 +68,15 @@ class Client(models.Model):
         null=True, blank=True
     )  # Tuổi của khách hàng, có thể để trống
     client_phone = models.CharField(max_length=12, null=True, blank=True)  # Số điện thoại khách hàng
-    cccd_pic = models.FileField(upload_to=client_pic_upload, null=True, blank=True)  # Ảnh CCCD của khách
+    cccd_pic = models.ImageField(upload_to=client_pic_upload, null=True, blank=True, validators=[validate_cccd_pic_size, validate_image_file_extension])  # Ảnh CCCD của khách
 
+    def save(self, *args, **kwargs):
+        if self.pk:
+            existing = get_object_or_404(Client, pk=self.pk)
+            if existing.cccd_pic != self.cccd_pic:
+                existing.cccd_pic.delete(save=False)
+        super(Client, self).save(*args, **kwargs)
+                
     # Hàm trả về chuỗi đại diện cho đối tượng Client
     def __str__(self):
         return f"Tên khách hàng: {self.name}. Số CCCD: {self.id_number}. SĐT khách hàng: {self.client_phone}"
@@ -82,8 +93,14 @@ class Staff(models.Model):
     staff_id_number = models.CharField(
         max_length=12, unique=True, null=True, blank=True
     )  # Số CCCD nhân viên
-    staff_pic = models.FileField(upload_to=staff_pic_upload, null=True, blank=True)  # Ảnh nhân viên
+    staff_pic = models.ImageField(upload_to=staff_pic_upload, null=True, blank=True, validators=[validate_staff_pic_size, validate_image_file_extension])  # Ảnh nhân viên
 
+    def save(self, *args, **kwargs):
+        if self.pk:
+            existing = get_object_or_404(Staff, pk=self.pk)
+            if existing.staff_pic != self.staff_pic:
+                existing.staff_pic.delete(save=False)
+        super(Staff, self).save(*args, **kwargs)
     # Hàm trả về chuỗi đại diện cho đối tượng Staff
     def __str__(self):
         return f"Tên nhân viên: {self.account.username}. SĐT nhân viên: {self.staff_phone}"
